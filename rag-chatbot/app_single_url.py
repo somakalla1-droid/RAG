@@ -27,7 +27,7 @@ def create_chatbot_interface(url: str):
         """Process user message and return answer."""
         try:
             result = rag.query(message)
-            return result["result"]
+            return result
         except Exception as e:
             return f"Error: {str(e)}"
     
