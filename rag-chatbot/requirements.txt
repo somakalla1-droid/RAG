@@ -1,0 +1,8 @@
+langchain==0.1.0
+langchain-community==0.0.10
+langchain-openai==0.0.5
+chroma-db==0.3.21
+sentence-transformers==2.2.2
+requests==2.31.0
+gradio==4.0.0
+python-dotenv==1.0.0
