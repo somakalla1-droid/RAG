@@ -31,30 +31,42 @@ class TradingPlatformRAG:
         self.chain = None
         self.memory = None
         
-    def load_and_chunk_document(self, url: str, chunk_size: int = 1000, chunk_overlap: int = 200):
+    def load_and_chunk_document(self, urls: list, chunk_size: int = 1000, chunk_overlap: int = 200):
         """
-        Load document from URL and chunk it.
+        Load documents from multiple URLs and chunk them.
         
         Args:
-            url: URL of the document to load
+            urls: List of URLs to load (or single URL as string)
             chunk_size: Size of each chunk
             chunk_overlap: Overlap between chunks
             
         Returns:
             List of chunked documents
         """
-        print(f"📥 Loading document from {url}...")
-        loader = WebBaseLoader(url)
-        documents = loader.load()
+        # Handle both single URL and list of URLs
+        if isinstance(urls, str):
+            urls = [urls]
         
-        print(f"📊 Chunking document (size={chunk_size}, overlap={chunk_overlap})...")
+        all_documents = []
+        for url in urls:
+            print(f"📥 Loading document from {url}...")
+            try:
+                loader = WebBaseLoader(url)
+                documents = loader.load()
+                all_documents.extend(documents)
+                print(f"   ✅ Loaded {len(documents)} document(s)")
+            except Exception as e:
+                print(f"   ⚠️ Error loading {url}: {e}")
+                continue
+        
+        print(f"📊 Chunking {len(all_documents)} document(s) (size={chunk_size}, overlap={chunk_overlap})...")
         splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             separators=["\n\n", "\n", " ", ""]
         )
-        chunks = splitter.split_documents(documents)
-        print(f"✅ Created {len(chunks)} chunks")
+        chunks = splitter.split_documents(all_documents)
+        print(f"✅ Created {len(chunks)} total chunks")
         
         return chunks
     
@@ -119,15 +131,15 @@ class TradingPlatformRAG:
         response = self.chain.invoke({"question": question})
         return response["answer"]
     
-    def initialize_from_url(self, url: str):
+    def initialize_from_url(self, urls: list):
         """
         Full initialization pipeline: load, chunk, embed, store.
         
         Args:
-            url: URL of the document
+            urls: List of URLs to load (or single URL as string)
         """
         print("🚀 Starting RAG initialization pipeline...")
-        chunks = self.load_and_chunk_document(url)
+        chunks = self.load_and_chunk_document(urls)
         self.build_vector_store(chunks)
         self.setup_conversation_chain()
         print("✅ RAG pipeline ready for queries!")
@@ -142,11 +154,18 @@ def main():
         print("❌ OPENAI_API_KEY not set. Set it as an environment variable.")
         sys.exit(1)
     
-    # Initialize RAG
+    # Initialize RAG with all service documentation URLs
     rag = TradingPlatformRAG(openai_api_key=api_key)
     
-    doc_url = "https://raw.githubusercontent.com/somakalla1-droid/RAG/main/docs/trading-platform-doc.md"
-    rag.initialize_from_url(doc_url)
+    docs_urls = [
+        "https://raw.githubusercontent.com/somakalla1-droid/RAG/main/docs/trading-platform-doc.md",
+        "https://raw.githubusercontent.com/somakalla1-droid/RAG/main/docs/order-validate-doc.md",
+        "https://raw.githubusercontent.com/somakalla1-droid/RAG/main/docs/order-entry-doc.md",
+        "https://raw.githubusercontent.com/somakalla1-droid/RAG/main/docs/order-router-doc.md",
+        "https://raw.githubusercontent.com/somakalla1-droid/RAG/main/docs/fix-service-doc.md",
+        "https://raw.githubusercontent.com/somakalla1-droid/RAG/main/docs/service-registry-doc.md",
+    ]
+    rag.initialize_from_url(docs_urls)
     
     # Multi-turn conversation loop
     print("\n💬 Trading Platform Chatbot Ready! Type 'quit' to exit.\n")

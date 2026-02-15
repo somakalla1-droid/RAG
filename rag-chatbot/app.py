@@ -17,9 +17,16 @@ def create_chatbot_interface():
     
     # Initialize RAG in background
     rag = TradingPlatformRAG(openai_api_key=api_key)
-    doc_url = "https://raw.githubusercontent.com/somakalla1-droid/RAG/main/docs/trading-platform-doc.md"
-    print("Initializing RAG pipeline...")
-    rag.initialize_from_url(doc_url)
+    docs_urls = [
+        "https://raw.githubusercontent.com/somakalla1-droid/RAG/main/docs/trading-platform-doc.md",
+        "https://raw.githubusercontent.com/somakalla1-droid/RAG/main/docs/order-validate-doc.md",
+        "https://raw.githubusercontent.com/somakalla1-droid/RAG/main/docs/order-entry-doc.md",
+        "https://raw.githubusercontent.com/somakalla1-droid/RAG/main/docs/order-router-doc.md",
+        "https://raw.githubusercontent.com/somakalla1-droid/RAG/main/docs/fix-service-doc.md",
+        "https://raw.githubusercontent.com/somakalla1-droid/RAG/main/docs/service-registry-doc.md",
+    ]
+    print("Initializing RAG pipeline with all service documentation...")
+    rag.initialize_from_url(docs_urls)
     print("✅ RAG pipeline initialized!")
     
     def chat(message, history):
